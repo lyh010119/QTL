@@ -65,9 +65,9 @@ def train():
     from peft import LoraConfig, get_peft_model
     
     lora_config = LoraConfig(
-        r=32, # 8
-        lora_alpha=64, # 16
-        target_modules="all-linear", # 모델 내부의 모든 레이어에 LoRA를 안전하게 부착
+        r=64, # 8
+        lora_alpha=128, # 16
+        target_modules=["gate_proj", "up_proj", "down_proj"], # "all-linear",   # 모델 내부의 모든 레이어에 LoRA를 안전하게 부착    # ["gate_proj", "up_proj", "down_proj"],
         bias="none",
     )
     qwen3tts.model = get_peft_model(qwen3tts.model, lora_config)
