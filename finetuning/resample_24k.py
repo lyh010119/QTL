@@ -8,10 +8,9 @@ def resample_all_audios(base_dir, target_sr=24000):
     wav_files = glob.glob(os.path.join(base_dir, '**', '*.wav'), recursive=True)
     
     if not wav_files:
-        print(f"⚠️ {base_dir} 경로에서 wav 파일을 찾을 수 없습니다. 경로를 확인해 주세요.")
-        return
+        return # 파일이 없으면 조용히 넘어갑니다.
 
-    print(f"🚀 총 {len(wav_files)}개의 오디오 파일을 {target_sr}Hz 규격으로 변환 시작합니다...")
+    print(f"🚀 [{base_dir}] 폴더 내 {len(wav_files)}개 오디오 24kHz 변환 시작...")
     
     for i, wav_path in enumerate(wav_files):
         try:
@@ -28,17 +27,30 @@ def resample_all_audios(base_dir, target_sr=24000):
         except Exception as e:
             print(f"❌ 에러 발생 ({wav_path}): {e}")
             
-    print("✅ 모든 오디오 파일의 24kHz 변환이 완벽하게 완료되었습니다!")
+    print(f"✅ [{base_dir}] 폴더 변환 완료!\n")
 
 if __name__ == '__main__':
-    # 1. 0017번 화자의 슬픔(Sad) 데이터 폴더만 정확하게 핀포인트로 타겟팅
-    sad_folder_path = os.path.abspath("../ESD/0017/Sad")                ##############
-    resample_all_audios(sad_folder_path)
+    # 1. ESD 폴더의 절대 경로 설정
+    esd_base_path = os.path.abspath("../ESD")
     
-    # 2. 밖에 빼두었던 기준 파일(ref_sad.wav)도 단독으로 24kHz 변환 (필수)
-    ref_file = os.path.abspath("../ESD/ref_sad.wav")                    ##############
-    if os.path.exists(ref_file):
-        import librosa, soundfile as sf
-        audio, sr = librosa.load(ref_file, sr=24000)
-        sf.write(ref_file, audio, 24000)
-        print(f"✅ 기준 파일({ref_file}) 단독 24kHz 변환 완료!")
+    # 2. 타겟팅할 감정 폴더 리스트
+    target_emotions = ["Angry", "Sad", "Neutral"]
+    
+    print("=====================================================")
+    print("🎙️ 다중 화자(0011~0020) 타겟 감정 오디오 24kHz 일괄 변환 시작")
+    print("=====================================================\n")
+    
+    # 3. 0011 ~ 0020 화자 폴더 순회
+    for folder_id in range(11, 21):
+        folder_name = str(folder_id).zfill(4) # "0011" 형태로 맞춤
+        
+        # 각 화자 폴더 내의 특정 감정 폴더 순회
+        for emotion in target_emotions:
+            target_folder = os.path.join(esd_base_path, folder_name, emotion)
+            
+            if os.path.exists(target_folder):
+                resample_all_audios(target_folder)
+            else:
+                print(f"⚠️ 폴더를 찾을 수 없어 건너뜁니다: {target_folder}")
+
+    print("🎉 모든 타겟 화자 및 감정 폴더의 24kHz 변환이 완벽하게 끝났습니다!")

@@ -203,23 +203,8 @@ class TTSDataset(Dataset):
             codec_mask[i,   8+text_ids_len-1:8+text_ids_len-1+codec_ids_len] = True
             attention_mask[i, :8+text_ids_len+codec_ids_len] = True
         
-        import torch.nn.functional as F
-        
-        # 1. 각 배치의 ref_mel 텐서들을 리스트로 모읍니다. (형태: [1, T, 128])
-        ref_mels_list = [data['ref_mel'] for data in batch]
-        
-        # 2. 리스트 내에서 가장 긴 시간(T) 길이를 찾습니다.
-        max_mel_len = max(mel.shape[1] for mel in ref_mels_list)
-        
-        padded_ref_mels = []
-        for mel in ref_mels_list:
-            pad_len = max_mel_len - mel.shape[1]
-            # 3. 마지막 차원(128)은 그대로 두고, 두 번째 차원(T)의 끝에만 pad_len 만큼 0을 채웁니다.
-            padded_mel = F.pad(mel, (0, 0, 0, pad_len), value=0.0)
-            padded_ref_mels.append(padded_mel)
-            
-        # 4. 길이가 모두 똑같아진 텐서들을 에러 없이 하나로 합칩니다.
-        ref_mels = torch.cat(padded_ref_mels, dim=0)
+        ref_mels = [data['ref_mel'] for data in batch]
+        ref_mels = torch.cat(ref_mels,dim=0)
 
         return {
             'input_ids':input_ids,

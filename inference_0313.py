@@ -77,19 +77,6 @@ def main():
         
         spk_embed_path = os.path.join(EMOTION_LORA_DIR, "target_speaker_embedding.pt")
         if os.path.exists(spk_embed_path):
-    
-    # =====================================================================
-    # 2. 화자 지문 강제 등록 (Base 모델을 해킹하여 주입)
-    # =====================================================================
-    if TARGET_SPEAKER.lower() not in ["aiden", "ryan"]:
-        target_config = model.model.config
-        target_config.tts_model_type = "custom_voice"
-        model.model.tts_model_type = "custom_voice"
-        
-        # [수정됨] 따로 추출해둔 speaker_embeddings 폴더에서 타겟 화자의 .pt 파일을 정확히 가져옵니다.
-        spk_embed_path = os.path.join("./speaker_embeddings", f"{TARGET_SPEAKER}.pt")
-        
-        if os.path.exists(spk_embed_path):
             target_dtype = model.model.talker.model.codec_embedding.weight.dtype
             spk_embed = torch.load(spk_embed_path).to(model.device).to(target_dtype)
             

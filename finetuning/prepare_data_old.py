@@ -16,7 +16,6 @@
 
 import argparse
 import json
-import os
 
 from qwen_tts import Qwen3TTSTokenizer
 
@@ -38,58 +37,35 @@ def main():
     total_lines = open(args.input_jsonl).readlines()
     total_lines = [json.loads(line.strip()) for line in total_lines]
 
-    # =========================================================================
-    # 💡 [핵심 수술] 연구자님의 완벽한 논리 반영! 화자별 전용 ref_audio 자동 매핑
-    # =========================================================================
-    speaker_ref_map = {}
-    
-    for line in total_lines:
-        audio_path = line['audio']
-        # 파일명(예: 0011_000001.wav)에서 '_' 앞부분인 '0011'을 화자 ID로 추출
-        filename = os.path.basename(audio_path)
-        speaker_id = filename.split('_')[0]
-        
-        # 처음 만나는 화자라면, 이 오디오를 해당 화자의 영구 레퍼런스로 등록!
-        if speaker_id not in speaker_ref_map:
-            speaker_ref_map[speaker_id] = audio_path
-            
-        # 모든 라인의 ref_audio를 해당 화자의 전용 레퍼런스로 덮어쓰기
-        line['ref_audio'] = speaker_ref_map[speaker_id]
-    # =========================================================================
-
     final_lines = []
     batch_lines = []
     batch_audios = []
-    
     for line in total_lines:
+
         batch_lines.append(line)
         batch_audios.append(line['audio'])
 
         if len(batch_lines) >= BATCH_INFER_NUM:
             enc_res = tokenizer_12hz.encode(batch_audios)
-            for code, line_data in zip(enc_res.audio_codes, batch_lines):
-                line_data['audio_codes'] = code.cpu().tolist()
-                final_lines.append(line_data)
+            for code, line in zip(enc_res.audio_codes, batch_lines):
+                line['audio_codes'] = code.cpu().tolist()
+                final_lines.append(line)
             batch_lines.clear()
             batch_audios.clear()
 
     if len(batch_audios) > 0:
         enc_res = tokenizer_12hz.encode(batch_audios)
-        for code, line_data in zip(enc_res.audio_codes, batch_lines):
-            line_data['audio_codes'] = code.cpu().tolist()
-            final_lines.append(line_data)
+        for code, line in zip(enc_res.audio_codes, batch_lines):
+            line['audio_codes'] = code.cpu().tolist()
+            final_lines.append(line)
         batch_lines.clear()
         batch_audios.clear()
 
     final_lines = [json.dumps(line, ensure_ascii=False) for line in final_lines]
 
-    with open(args.output_jsonl, 'w', encoding='utf-8') as f:
+    with open(args.output_jsonl, 'w') as f:
         for line in final_lines:
             f.writelines(line + '\n')
-            
-    print(f"✅ {len(speaker_ref_map)}명 화자의 ref_audio가 완벽하게 매핑되어 저장되었습니다!")
-    for spk, ref in speaker_ref_map.items():
-        print(f"   - {spk} -> {ref}")
 
 if __name__ == "__main__":
     main()
