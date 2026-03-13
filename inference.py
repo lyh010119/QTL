@@ -12,11 +12,12 @@ from safetensors.torch import load_file
 # =====================================================================
 # "aiden"을 입력하면 CustomVoice 모델로 구동되고, 
 # "speaker_0017" 등을 입력하면 Base 모델로 자동 구동됩니다.
-TARGET_SPEAKER = "speaker_0011" # "speaker_0017", "aiden" 등 입력
+TARGET_SPEAKER = "speaker_0017" # "speaker_0017", "aiden" 등 입력
 
-EMOTION_LORA_DIR = "./finetuning/output_angry_lora/checkpoint-epoch-9"
+EMOTION_LORA_DIR = "./finetuning/output_sad_lora_mlp64/checkpoint-epoch-9"
 NEUTRAL_LORA_DIR = "./finetuning/output_neutral_lora/checkpoint-epoch-9"
-EMOTION_VOLUME = 1.4
+EMOTION_VOLUME = 0.1
+# mlp는 0.4가 max, all은 0.8과 0.6정도가 max
 # =====================================================================
 
 # --- 결과 폴더 이름 생성 함수 ---
