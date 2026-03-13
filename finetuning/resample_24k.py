@@ -32,11 +32,11 @@ def resample_all_audios(base_dir, target_sr=24000):
 
 if __name__ == '__main__':
     # 1. 0017번 화자의 슬픔(Sad) 데이터 폴더만 정확하게 핀포인트로 타겟팅
-    sad_folder_path = os.path.abspath("../ESD/0017/Neutral")                ##############
+    sad_folder_path = os.path.abspath("../ESD/0017/Sad")                ##############
     resample_all_audios(sad_folder_path)
     
     # 2. 밖에 빼두었던 기준 파일(ref_sad.wav)도 단독으로 24kHz 변환 (필수)
-    ref_file = os.path.abspath("../ESD/ref_neutral.wav")                    ##############
+    ref_file = os.path.abspath("../ESD/ref_sad.wav")                    ##############
     if os.path.exists(ref_file):
         import librosa, soundfile as sf
         audio, sr = librosa.load(ref_file, sr=24000)

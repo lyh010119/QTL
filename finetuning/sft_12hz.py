@@ -67,7 +67,7 @@ def train():
     lora_config = LoraConfig(
         r=8,
         lora_alpha=16,
-        target_modules="all-linear", # 모델 내부의 모든 선형 레이어(Linear)에 LoRA를 안전하게 부착
+        target_modules="all-linear", # 모델 내부의 모든 레이어에 LoRA를 안전하게 부착
         bias="none",
     )
     qwen3tts.model = get_peft_model(qwen3tts.model, lora_config)
