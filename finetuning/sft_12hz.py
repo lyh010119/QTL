@@ -42,7 +42,7 @@ def train():
     parser.add_argument("--speaker_name", type=str, default="speaker_test")
     args = parser.parse_args()
 
-    accelerator = Accelerator(gradient_accumulation_steps=4, mixed_precision="bf16", log_with="tensorboard", project_dir=args.output_model_path)
+    accelerator = Accelerator(gradient_accumulation_steps=8, mixed_precision="bf16", log_with="tensorboard", project_dir=args.output_model_path) # 원래는 4
     MODEL_PATH = args.init_model_path
 
     '''
@@ -65,8 +65,8 @@ def train():
     from peft import LoraConfig, get_peft_model
     
     lora_config = LoraConfig(
-        r=8,
-        lora_alpha=16,
+        r=32, # 8
+        lora_alpha=64, # 16
         target_modules="all-linear", # 모델 내부의 모든 레이어에 LoRA를 안전하게 부착
         bias="none",
     )

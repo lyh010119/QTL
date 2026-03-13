@@ -12,11 +12,11 @@ from safetensors.torch import load_file
 # =====================================================================
 # "aiden"을 입력하면 CustomVoice 모델로 구동되고, 
 # "speaker_0017" 등을 입력하면 Base 모델로 자동 구동됩니다.
-TARGET_SPEAKER = "speaker_0017" # "speaker_0017" "aiden"
+TARGET_SPEAKER = "speaker_0011" # "speaker_0017", "aiden" 등 입력
 
-EMOTION_LORA_DIR = "./finetuning/output_sad_lora/checkpoint-epoch-9"
+EMOTION_LORA_DIR = "./finetuning/output_angry_lora/checkpoint-epoch-9"
 NEUTRAL_LORA_DIR = "./finetuning/output_neutral_lora/checkpoint-epoch-9"
-EMOTION_VOLUME = 2.0  # 순수 감정 증폭량 (기본 1.5 ~ 2.0 권장)
+EMOTION_VOLUME = 1.4
 # =====================================================================
 
 # --- 결과 폴더 이름 생성 함수 ---
@@ -75,25 +75,30 @@ def main():
         target_config.tts_model_type = "custom_voice"
         model.model.tts_model_type = "custom_voice"
         
-        # [수정됨] 따로 추출해둔 speaker_embeddings 폴더에서 타겟 화자의 .pt 파일을 정확히 가져옵니다.
-        spk_embed_path = os.path.join("./speaker_embeddings", f"{TARGET_SPEAKER}.pt")
+        # [경로 완벽 수정] finetuning 폴더 안의 pt 파일을 가리키도록 고정
+        spk_embed_path = os.path.join("./finetuning/speaker_embeddings", f"{TARGET_SPEAKER}.pt")
         
         if os.path.exists(spk_embed_path):
             target_dtype = model.model.talker.model.codec_embedding.weight.dtype
             spk_embed = torch.load(spk_embed_path).to(model.device).to(target_dtype)
             
             # Base 모델의 빈 공간에 성대 복사
-            model.model.talker.model.codec_embedding.weight.data[ 3000 ] = spk_embed
+            model.model.talker.model.codec_embedding.weight.data[3000] = spk_embed
             
             talker_cfg = getattr(target_config, "talker_config", {})
             if isinstance(talker_cfg, dict):
-                if "spk_id" not in talker_cfg: talker_cfg["spk_id"] = {}
+                if "spk_id" not in talker_cfg: 
+                    talker_cfg["spk_id"] = {}
                 talker_cfg["spk_id"][TARGET_SPEAKER] = 3000
             else:
-                if getattr(talker_cfg, "spk_id", None) is None: talker_cfg.spk_id = {}
+                if getattr(talker_cfg, "spk_id", None) is None: 
+                    talker_cfg.spk_id = {}
                 talker_cfg.spk_id[TARGET_SPEAKER] = 3000
                 
             print(f"✅ Base 모델 해킹 완료: {TARGET_SPEAKER} 지문 등록 (3000번)")
+        else:
+            # [안전장치] 파일이 없으면 조용히 넘어가지 않고 에러를 발생시킵니다!
+            raise FileNotFoundError(f"❌ 앗! 화자 지문(.pt)을 찾을 수 없습니다: {os.path.abspath(spk_embed_path)}")
     else:
         print("✅ CustomVoice 모델 순정 유지: 내장 화자 사용 준비 완료")
 
